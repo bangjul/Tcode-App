@@ -17,16 +17,22 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import static android.R.attr.fragment;
+import com.example.julioalfian.tcode.helper.SQLiteHandler;
+import com.example.julioalfian.tcode.helper.SessionManager;
+
+import java.util.HashMap;
+
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    FragmentTransaction fragmentTransaction;
-    FragmentManager fragmentManager;
-    Fragment fragment = null;
+    private SessionManager session;
+    private SQLiteHandler db;
+    TextView navHeader_userFullname;
+    TextView navHeader_userEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +40,24 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        ///////login
+        // SqLite database handler
+        db = new SQLiteHandler(getApplicationContext());
+
+        // session manager
+        session = new SessionManager(getApplicationContext());
+
+        if (!session.isLoggedIn()) {
+            logoutUser();
+        }
+
+        // Fetching user details from sqlite
+        HashMap<String, String> user = db.getUserDetails();
+
+        String name = user.get("name");
+        String email = user.get("email");
+        ///////////////
 
         LinearLayout scan = (LinearLayout) findViewById(R.id.btn_scan);
         scan.setOnClickListener(new View.OnClickListener() {
@@ -51,15 +75,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-////                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-////                        .setAction("Action", null).show();
-//                startActivity(new Intent(getApplicationContext(), Scan.class));
-//            }
-//        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -70,13 +85,14 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        fragmentManager = getFragmentManager();
+        //////////////
+        View header=navigationView.getHeaderView(0);
+        navHeader_userFullname = (TextView)header.findViewById(R.id.navHeader_userFullname);
+        navHeader_userEmail = (TextView)header.findViewById(R.id.navHeader_userEmail);
+        navHeader_userFullname.setText(name);
+        navHeader_userEmail.setText(email);
 
-        // tampilan default awal ketika aplikasii dijalankan
-//        if (savedInstanceState == null) {
-//            fragment = new Root();
-//            callFragment(fragment);
-//        }
+
     }
 
     @Override
@@ -105,7 +121,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startActivity(new Intent(getApplicationContext(), Flash.class));
+            startActivity(new Intent(getApplicationContext(), About.class));
             return true;
         }
 
@@ -123,25 +139,28 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_generator) {
             startActivity(new Intent(getApplicationContext(), Generator.class));
 
-        }   else if (id == R.id.nav_about) {
-            startActivity(new Intent(getApplicationContext(), About.class));
-
-        } else if (id == R.id.nav_exit) {
+        } else if (id == R.id.nav_logout) {
+            logoutUser();
+        }   else if (id == R.id.nav_exit) {
             finish();
             System.exit(0);
         }
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-    // untuk mengganti isi kontainer menu yang dipiih
-    private void callFragment(Fragment fragment) {
-        fragmentTransaction = fragmentManager.beginTransaction();
 
-        fragmentTransaction.remove(fragment);
-        //fragmentTransaction.replace(R.id.frame_container, fragment);
-        fragmentTransaction.commit();
+    private void logoutUser() {
+        session.setLogin(false);
+
+        db.deleteUsers();
+
+        // Launching the login activity
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

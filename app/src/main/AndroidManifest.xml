@@ -84,16 +84,6 @@
                 android:value=".MainActivity" />
         </activity>
         <activity
-            android:name=".Flash"
-            android:label="Flashlight"
-            android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-            >
-        </activity>
-        <activity
             android:name=".About"
             android:label="About"
             android:parentActivityName=".MainActivity">
@@ -101,7 +91,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
-        <activity android:name=".Scan2"></activity>
+        <activity android:name=".Scan2" />
+        <activity android:name=".LoginActivity"></activity>
     </application>
 
 </manifest>
